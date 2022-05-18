@@ -2,17 +2,22 @@ package com.example.flutter_plugin_demo;
 
 import static android.content.Context.BATTERY_SERVICE;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+
+
+import java.lang.ref.WeakReference;
 
 import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -24,19 +29,22 @@ import io.flutter.plugin.common.PluginRegistry;
 
 /** FlutterPluginDemoPlugin */
 public class FlutterPluginDemoPlugin implements FlutterPlugin, MethodCallHandler {
-  /// The MethodChannel that will the communication between Flutter and native Android
-  ///
-  /// This local reference serves to register the plugin with the Flutter Engine and unregister it
-  /// when the Flutter Engine is detached from the Activity
   private MethodChannel channel;
   private Context applicationContext;
+  private WeakReference<Activity> mActivity;
 
   /// 保留旧版本的兼容
-  public void registerWith(PluginRegistry.Registrar registerWith) {
-    Log.e("registerWith", "registerWith");
-    channel = new MethodChannel(registerWith.messenger(), "flutter_plugin_test_new");
-    channel.setMethodCallHandler(new FlutterPluginDemoPlugin());
+  public static void registerWith(PluginRegistry.Registrar registerWith) {
+    MethodChannel channel = new MethodChannel(registerWith.messenger(), "flutter_plugin_demo");
+    channel.setMethodCallHandler(new FlutterPluginDemoPlugin().initPlugin(channel, registerWith));
   }
+  public FlutterPluginDemoPlugin initPlugin(MethodChannel methodChannel, PluginRegistry.Registrar registerWith) {
+    channel = methodChannel;
+    applicationContext = registerWith.context().getApplicationContext();
+    mActivity = new WeakReference<>(registerWith.activity());
+    return this;
+  }
+
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
     this.applicationContext = flutterPluginBinding.getApplicationContext();
@@ -47,21 +55,25 @@ public class FlutterPluginDemoPlugin implements FlutterPlugin, MethodCallHandler
   @RequiresApi(api = VERSION_CODES.M)
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-
-    if (call.method.equals("getBatteryLevel")) {
-      int batteryLevel = getBatteryLevel();
-      if (batteryLevel != -1) {
-        result.success(batteryLevel);
-      } else {
-        result.error("UNAVAILABLE", "Battery level not available.", null);
-      }
-    } else {
-      result.notImplemented();
+    switch (call.method) {
+      case "getBatteryLevel":
+        int batteryLevel = getBatteryLevel();
+        if (batteryLevel != -1) {
+          result.success(batteryLevel);
+        } else {
+          result.error("UNAVAILABLE", "Battery level not available.", null);
+        }
+        break;
+      case "getPlatformVersion":
+        result.success("Android " + Build.VERSION.RELEASE);
+        break;
+      default:
+        result.notImplemented();
     }
   }
 
 
-  // 3.获取电量的原生方法
+  // 获取电量的原生方法
   @RequiresApi(api = VERSION_CODES.M)
   private int getBatteryLevel () {
     int batteryLevel = -1;
