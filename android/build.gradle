@@ -1,5 +1,6 @@
 group 'com.example.flutter_plugin_demo'
 version '1.0'
+
 //获取local.properties配置文件
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
@@ -14,10 +15,18 @@ if (flutterRoot == null) {
     throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
+// 因为Flutter默认配置的仓库依赖是国外的，要是在国内运行起来会很慢甚至运行失败，这里修改为阿里云的maven仓库依赖
 buildscript {
     repositories {
         google()
         mavenCentral()
+//        maven { url 'https://maven.aliyun.com/repository/google'
+//            allowInsecureProtocol = true}
+//        maven { url 'https://maven.aliyun.com/repository/jcenter'
+//            allowInsecureProtocol = true}
+//        maven { url 'http://maven.aliyun.com/nexus/content/groups/public'
+//            allowInsecureProtocol = true}
+
     }
 
     dependencies {
@@ -48,6 +57,7 @@ android {
 }
 
 dependencies {
+    // 有标红报错， 是没有导入flutter依赖包  flutter sdk安装路径\\flutter.jar
     compileOnly files("$flutterRoot/bin/cache/artifacts/engine/android-arm/flutter.jar")
     compileOnly 'androidx.annotation:annotation:1.1.0'
 }

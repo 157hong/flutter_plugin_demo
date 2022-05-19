@@ -25,6 +25,7 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
   }
 
+  // 获取平台信息
   Future<void> initPlatformState() async {
     String platformVersion;
     try {
@@ -63,9 +64,9 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
-              Text('Running on: $_platformVersion\n'),
+              Text('Running on: $_platformVersion\n'),   // 版本
               const SizedBox(height: 20,),
-              Text('battery level: $_batteryLevel\n'),
+              Text('battery level: $_batteryLevel\n'),   // 电量
               ElevatedButton(onPressed: (){
                 getBatteryLevel();
                   }, child: const Text('click! get battery level'))
